@@ -11,17 +11,17 @@ getFilename = do
     [] -> error "File name expected."
     (fn : _) -> return fn
 
-printOpand :: Operand -> String
+printOpand :: POperand -> String
 printOpand (RefLabel l) = l
 printOpand (DirValue v) = show v
 
-printOper :: Operation -> String
-printOper (Argumented operator operand) = show operator ++ " " ++ printOpand operand
-printOper (Unargumented operator) = show operator
+printOper :: POperation -> String
+printOper (PArgumented operator operand) = show operator ++ " " ++ printOpand operand
+printOper (PUnargumented operator) = show operator
 
-printInst :: Instruction -> String
-printInst (Labeled l o) = l ++ ":\t" ++ printOper o
-printInst (Unlabeled o) = "\t" ++ printOper o
+printInst :: PInstruction -> String
+printInst (PLabeled l o) = l ++ ":\t" ++ printOper o
+printInst (PUnlabeled o) = "\t" ++ printOper o
 
 main :: IO ()
 main = do

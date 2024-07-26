@@ -2,7 +2,15 @@
 {-# HLINT ignore "Use <$>" #-}
 {-# OPTIONS_GHC -Wno-unused-do-bind #-}
 
-module Parser where
+module Parser
+  ( Label,
+    PInstruction (..),
+    POperation (..),
+    POperator (..),
+    POperand (..),
+    parseProgram,
+  )
+where
 
 import Control.Applicative
 import Data.Maybe (catMaybes)
@@ -11,11 +19,11 @@ import ParserLib
 -- Type aliases for labels and addresses
 type Label = String
 
-data Instruction = Labeled Label Operation | Unlabeled Operation deriving (Show)
+data PInstruction = PLabeled Label POperation | PUnlabeled POperation deriving (Show)
 
-data Operation = Argumented Operator Operand | Unargumented Operator deriving (Show)
+data POperation = PArgumented POperator POperand | PUnargumented POperator deriving (Show)
 
-data Operator
+data POperator
   = HLT
   | ADD
   | SUB
@@ -29,7 +37,7 @@ data Operator
   | DAT
   deriving (Show)
 
-operatorStrings :: [(String, Operator)]
+operatorStrings :: [(String, POperator)]
 operatorStrings =
   [ ("HLT", HLT),
     ("ADD", ADD),
@@ -44,7 +52,7 @@ operatorStrings =
     ("DAT", DAT)
   ]
 
-data Operand
+data POperand
   = RefLabel Label
   | DirValue Int
   deriving (Show)
@@ -61,10 +69,10 @@ sepSpace = satisfy isspace
     isspace '\t' = False
     isspace _ = False
 
-parseProgram :: String -> Maybe [Instruction]
+parseProgram :: String -> Maybe [PInstruction]
 parseProgram = fmap (catMaybes . fst) . parse parseFile
 
-parseFile :: Parser [Maybe Instruction]
+parseFile :: Parser [Maybe PInstruction]
 parseFile = do
   result <-
     many $ do
@@ -75,14 +83,14 @@ parseFile = do
   return result
 
 -- | Parses one line of source.
-parseLine :: Parser (Maybe Instruction)
+parseLine :: Parser (Maybe PInstruction)
 parseLine = do
   line <- optional parseSourceLine
   many sepSpace
   optional parseComment
   return line
 
-parseSourceLine :: Parser Instruction
+parseSourceLine :: Parser PInstruction
 parseSourceLine = parseUnlabeledLine <|> parseLabeledLine
 
 parseComment :: Parser String
@@ -90,19 +98,19 @@ parseComment = do
   string "//"
   many $ satisfy (not . isnewline)
 
-parseLabeledLine :: Parser Instruction
+parseLabeledLine :: Parser PInstruction
 parseLabeledLine = do
   label <- parseLabel
   char ':' <|> space
   many space
   operation <- parseOperation
-  return (Labeled label operation)
+  return (PLabeled label operation)
 
-parseUnlabeledLine :: Parser Instruction
+parseUnlabeledLine :: Parser PInstruction
 parseUnlabeledLine = do
   some sepSpace
   operation <- parseOperation
-  return (Unlabeled operation)
+  return (PUnlabeled operation)
 
 parseLabel :: Parser Label
 parseLabel = do
@@ -110,18 +118,18 @@ parseLabel = do
   abel <- many alphanum
   return (l : abel)
 
-parseOperation :: Parser Operation
+parseOperation :: Parser POperation
 parseOperation =
   do
     operator <- parseOperator
     ( do
         some sepSpace
         operand <- parseOperand
-        return (Argumented operator operand)
+        return (PArgumented operator operand)
       )
-      <|> return (Unargumented operator)
+      <|> return (PUnargumented operator)
 
-parseOperator :: Parser Operator
+parseOperator :: Parser POperator
 parseOperator = asum $ map toOp operatorStrings
   where
     toOp (s, o) = o <$ string s
@@ -129,5 +137,5 @@ parseOperator = asum $ map toOp operatorStrings
 parseValue :: Parser Int
 parseValue = read <$> some digit
 
-parseOperand :: Parser Operand
+parseOperand :: Parser POperand
 parseOperand = (RefLabel <$> parseLabel) <|> (DirValue <$> parseValue)
