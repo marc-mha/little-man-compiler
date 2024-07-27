@@ -134,8 +134,8 @@ parseLabel = do
   abel <- many alphanum
   return (l : abel)
 
-parseOperation :: Parser POperation
-parseOperation =
+_parseOperation :: Parser POperation
+_parseOperation =
   do
     operator <- parseOperator
     ( do
@@ -144,6 +144,21 @@ parseOperation =
         return (PArgumented operator operand)
       )
       <|> return (PUnargumented operator)
+
+parseOperation :: Parser POperation
+parseOperation = do
+  operator <- parseOperator
+  case operator of
+    HLT -> return (PUnargumented operator)
+    INP -> return (PUnargumented operator)
+    OUT -> return (PUnargumented operator)
+    DAT -> do
+      operand <- optional (some sepSpace *> parseOperand)
+      return $ maybe (PUnargumented operator) (PArgumented operator) operand
+    _ -> do
+      some sepSpace
+      operand <- parseOperand
+      return (PArgumented operator operand)
 
 parseOperator :: Parser POperator
 parseOperator = asum $ map toOp operatorStrings
