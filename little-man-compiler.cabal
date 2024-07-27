@@ -18,9 +18,11 @@ executable little-man-compiler
     import:           warnings
     main-is:          Main.hs
     other-modules:    Parser,
-                      Resolver
+                      Resolver,
+                      CodeGener
     -- other-extensions:
     build-depends:    base ^>=4.17.2.1,
-                      ParserLib
+                      ParserLib,
+                      bytestring
     hs-source-dirs:   app
     default-language: Haskell2010
