@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-{-# HLINT ignore "Use <$>" #-}
 {-# OPTIONS_GHC -Wno-unused-do-bind #-}
+
+{-# HLINT ignore "Use <$>" #-}
 
 module Parser
   ( Label,
@@ -13,8 +14,23 @@ module Parser
 where
 
 import Control.Applicative
+  ( Alternative (many, some, (<|>)),
+    asum,
+    optional,
+  )
 import Data.Maybe (catMaybes)
 import ParserLib
+  ( Parser,
+    alphanum,
+    char,
+    digit,
+    eof,
+    letter,
+    parse,
+    satisfy,
+    space,
+    string,
+  )
 
 -- Type aliases for labels and addresses
 type Label = String

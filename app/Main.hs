@@ -2,6 +2,12 @@ module Main where
 
 import Data.Maybe (fromJust)
 import Parser
+  ( PInstruction (..),
+    POperand (..),
+    POperation (..),
+    parseProgram,
+  )
+import Resolver
 import System.Environment (getArgs)
 
 getFilename :: IO String
@@ -23,8 +29,15 @@ printInst :: PInstruction -> String
 printInst (PLabeled l o) = l ++ ":\t" ++ printOper o
 printInst (PUnlabeled o) = "\t" ++ printOper o
 
+printAddr :: Address -> String
+printAddr (Address v) = show v
+
+printResolved :: Addressed ROperation -> String
+printResolved (RArgumented operator operand, i) = printAddr i ++ ":\t" ++ show operator ++ " " ++ printAddr operand
+printResolved (RUnargumented operator, i) = printAddr i ++ ":\t" ++ show operator
+
 main :: IO ()
 main = do
   filename <- getFilename
   source <- readFile filename
-  putStrLn ((unlines . map printInst) (fromJust (parseProgram source)))
+  putStrLn ((unlines . map printResolved) (fromJust (parseProgram source >>= resolveProgram)))
