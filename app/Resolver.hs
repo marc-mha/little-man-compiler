@@ -11,7 +11,7 @@ import Parser
     POperator,
   )
 
-newtype Address = Address Int deriving (Show)
+newtype Address = Address {unAddress :: Int} deriving (Show)
 
 type Addressed a = (a, Address)
 

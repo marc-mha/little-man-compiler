@@ -1,6 +1,7 @@
 module Main where
 
-import Data.Maybe (fromJust)
+import CodeGener (generateProgram)
+import Data.ByteString (writeFile)
 import Parser
   ( PInstruction (..),
     POperand (..),
@@ -8,14 +9,20 @@ import Parser
     parseProgram,
   )
 import Resolver
+  ( Address (Address),
+    Addressed,
+    ROperation (..),
+    resolveProgram,
+  )
 import System.Environment (getArgs)
 
-getFilename :: IO String
+getFilename :: IO (String, String)
 getFilename = do
   args <- getArgs
   case args of
-    [] -> error "File name expected."
-    (fn : _) -> return fn
+    [] -> error "Input file expected."
+    [_] -> error "Output file expected."
+    (inp : out : _) -> return (inp, out)
 
 printOpand :: POperand -> String
 printOpand (RefLabel l) = l
@@ -38,6 +45,13 @@ printResolved (RUnargumented operator, i) = printAddr i ++ ":\t" ++ show operato
 
 main :: IO ()
 main = do
-  filename <- getFilename
-  source <- readFile filename
-  putStrLn ((unlines . map printResolved) (fromJust (parseProgram source >>= resolveProgram)))
+  (inputfile, outputfile) <- getFilename
+  source <- readFile inputfile
+  let compiled =
+        parseProgram source
+          >>= resolveProgram
+          >>= generateProgram
+  maybe
+    (putStrLn "An error occurred when compiling.")
+    (\bytecode -> Data.ByteString.writeFile outputfile bytecode >> putStrLn "Compiled successfully!")
+    compiled
