@@ -21,6 +21,8 @@ executable little-man-compiler
                       Resolver
     -- other-extensions:
     build-depends:    base ^>=4.17.2.1,
-                      ParserLib
+                      ParserLib ^>=0.1.0.0,
+                      bytestring
+
     hs-source-dirs:   app
     default-language: Haskell2010
