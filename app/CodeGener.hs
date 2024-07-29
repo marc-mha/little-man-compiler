@@ -5,6 +5,10 @@ import Data.ByteString (ByteString, pack)
 import Data.Word (Word16, Word8)
 import Parser (POperator (..))
 import Resolver
+  ( Address (Address, unAddress),
+    Addressed,
+    ROperation (..),
+  )
 
 encodeOperator :: POperator -> Int
 encodeOperator HLT = 0x0000
@@ -38,5 +42,9 @@ isSequential [] = True
 isSequential [_] = True
 isSequential (x : y : zs) = (x + 1 == y) && isSequential (y : zs)
 
-generate :: [Addressed ROperation] -> Maybe ByteString
-generate = undefined
+generateProgram :: [Addressed ROperation] -> Maybe ByteString
+generateProgram program =
+  let (operations, addresses) = unzip program
+   in if isSequential . map unAddress $ addresses
+        then Just . toBytes . map encodeOperation $ operations
+        else Nothing
