@@ -1,6 +1,7 @@
 # Ignore Haskell auxillary files
 *.o
 *.hi
+*.olmc
 
 # Ignore Cabal auxillary files
 dist-newstyle/
